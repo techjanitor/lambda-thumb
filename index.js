@@ -50,6 +50,10 @@ exports.handler = function(event, context) {
     // max height
     var max_height = event.max_height;
 
+    // hold our thumb stats
+    var thumb_width;
+    var thumb_height;
+
     // Download the image from S3, transform, and upload to a different S3 bucket.
     async.waterfall([
             function download(next) {
@@ -61,12 +65,24 @@ exports.handler = function(event, context) {
             },
             function tranform(response, next) {
                 gm(response.Body)
+                    .quality(90)
+                    .background("white")
+                    .flatten()
                     .resize(max_width, max_height, '>')
-                    .noProfile()
-                    .toBuffer('jpg', function(err, buffer) {
+                    .toBuffer('JPG', function(err, buffer) {
                         if (err) {
                             next(err);
                         } else {
+                            gm(buffer)
+                                .size(function(err, size) {
+                                    if (err) {
+                                        next(err);
+                                    } else {
+                                        // get our sizes
+                                        thumb_height = size.height;
+                                        thumb_width = size.width;
+                                    }
+                                })
                             next(null, response.ContentType, buffer);
                         }
                     });
@@ -87,7 +103,9 @@ exports.handler = function(event, context) {
                 context.fail(new Error('Failed due to error: ' + err));
             } else {
                 context.succeed({
-                    successMessage: 'created thumbnail'
+                    successMessage: 'thumbnail created',
+                    thumbWidth: thumb_width,
+                    thumbHeight: thumb_height
                 });
             }
         }
