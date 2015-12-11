@@ -64,7 +64,7 @@ exports.handler = function(event, context) {
                 }, next);
             },
             function tranform(response, next) {
-                gm(response.Body)
+                gm(response.Body, 'image[0]')
                     .quality(90)
                     .background("white")
                     .flatten()
