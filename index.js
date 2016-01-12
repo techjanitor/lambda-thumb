@@ -65,6 +65,9 @@ exports.handler = function(event, context) {
             },
             function tranform(response, next) {
                 gm(response.Body, 'image[0]')
+                    .limit('memory', '512MB')
+                    .limit('map', '1024MB')
+                    .noProfile()
                     .quality(90)
                     .background("white")
                     .flatten()
